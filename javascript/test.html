@@ -30,9 +30,145 @@
       作者：郭东东 链接：https://juejin.im/post/5c64d15d6fb9a049d37f9c20 来源：掘金 著作权归作者所222
     </div>
   </div>
+  <hr></hr>
+  <p></p>
+  <div>
+    <div class="flex-example">
+      <div class="flex-item" style="flex:1 0 auto">flex:1</div>
+      <div class="flex-item" style="flex:2 0 auto">flex:2</div>
+      <div class="flex-item" style="flex:3 0 auto">flex:3</div>
+    </div>
+    <div class="flex-example" style="justify-content: space-between;transform: scale(-1,-1);">
+      <div class="flex-item" style="flex:0.2 0 auto">flex:0.2</div>
+      <div class="flex-item" style="flex:0.3 0 auto">flex:0.3</div>
+      <div class="flex-item" style="flex:0.2 0 auto">flex:0.2</div>
+    </div>
+    <p>justify-content: space-between;</p>
+    <div class="flex-example" style="justify-content: space-around;">
+      <div class="flex-item" style="flex:0.2 0 auto">flex:0.2</div>
+      <div class="flex-item" style="flex:0.3 0 auto">flex:0.3</div>
+      <div class="flex-item" style="flex:0.2 0 auto">flex:0.2</div>
+    </div>
+    <p>justify-content: space-around;</p>
+    <div class="flex-example" style="justify-content: space-evenly;">
+      <div class="flex-item" style="flex:0.2 0 auto">flex:0.2</div>
+      <div class="flex-item" style="flex:0.3 0 auto">flex:0.3</div>
+      <div class="flex-item" style="flex:0.2 0 auto">flex:0.2</div>
+    </div>
+    <p>justify-content: space-evenly;</p>
+  </div>
+  <p></p>
+  <hr></hr>
+  <p>IFC布局</p>
+  <div class="ifc-example">
+    <div class="ifc-item-1"></div>
+    <div class="ifc-item-2"></div>
+    <div class="ifc-item-3"></div>
+    <p>1</p>
+  </div>
 
+  <p>文本截断演示</p>
+  <div class="zxx_text_overflow">
+    <div class="zxx_con">这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。这是一段比较长的文字，用来测试是否文字溢出时会用省略号显示。</div>
+    <div class="zxx_dotted">…</div>
+  </div>
 </body>
-
+<style type="text/css">
+  .zxx_text_overflow {
+    width: 24em;
+    height: 1.3em;
+    overflow: hidden;
+    zoom: 1;
+  }
+  
+  .zxx_con {
+    float: left;
+    height: 1.3em;
+    margin-right: 3em;
+    overflow: hidden;
+  }
+  
+  .zxx_dotted {
+    width: 3em;
+    height: 1.31em;
+    float: right;
+    margin-top: -1.3em;
+  }
+  
+  .flex-example {
+    display: flex;
+    flex-flow: row nowrap;
+    justify-content: space-between;
+    align-content: center;
+    background: cornsilk;
+  }
+  
+  .flex-item {
+    height: 100px;
+    width: 100px;
+    background: radial-gradient(circle, #ffffff, #DBEAFE 70%, #98C5FE);
+    border: crimson 1px solid;
+    line-height: 100px;
+    text-align: center;
+  }
+  
+  .ifc-example {
+    display: inline-block;
+    background: chocolate;
+  }
+  
+  .ifc-item-1 {
+    padding: 10px;
+    margin: 20px;
+    height: 30px;
+    width: 100px;
+    display: inline-block;
+    border: chocolate 1px solid;
+    background: chartreuse;
+  }
+  
+  .ifc-item-2 {
+    padding: 100px;
+    margin: 200px;
+    height: 300px;
+    width: 100px;
+    display: inline-block;
+    border: chocolate 1px solid;
+    background: chartreuse;
+  }
+  
+  .ifc-item-3 {
+    padding: 40px;
+    margin: 60px;
+    height: 200px;
+    width: 100px;
+    display: inline-block;
+    border: chocolate 1px solid;
+    background: chartreuse;
+  }
+  
+  p {
+    position: relative;
+    line-height: 18px;
+    height: 36px;
+    overflow: hidden;
+  }
+  
+  p::after {
+    content: "...";
+    font-weight: bold;
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    padding: 0 20px 1px 45px;
+    /* 为了展示效果更好 */
+    background: -webkit-gradient(linear, left top, right top, from(rgba(255, 255, 255, 0)), to(white), color-stop(50%, white));
+    background: -moz-linear-gradient(to right, rgba(255, 255, 255, 0), white 50%, white);
+    background: -o-linear-gradient(to right, rgba(255, 255, 255, 0), white 50%, white);
+    background: -ms-linear-gradient(to right, rgba(255, 255, 255, 0), white 50%, white);
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), white 50%, white);
+  }
+</style>
 <script type="text/javascript" src="./test.js">
 </script>
 

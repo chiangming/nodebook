@@ -90,7 +90,7 @@ var sum = function(num1, num2){
    * 在特定的作用域中调用函数,实际上等于设置函数体内 this 对象的值
    * apply() arg[0]:运行函数的作用域 arg[1]:参数数组
    * call()  arg[0]:运行函数的作用域 arg[1~n]:参数1~n
-   
+
 ### 数据类型
 * 简单类型：undefined null boolean number string 
 * 复杂类型：object
@@ -131,3 +131,113 @@ var sum = function(num1, num2){
 * every() some() forEach() filter() map() 
 * reduce() reduceRight()
 ### Date
+### Function
+* 函数内部属性
+  * arguments.callee 指向拥有该arguments的函数
+  * this 引用的是函数执行的环境对象
+  * caller 当前函数的函数的引用
+* 函数属性和方法
+  * length 参数个数
+  * prototype  ----------------见后续
+  * apply(),call()
+  * bind() 会创建函数实例
+
+# 执行上下文和执行栈
+
+## 执行上下文
+ 1. 全局EC： window（浏览器）、moudle（node）
+ 2. 函数EC： 函数每次被调用时创建
+ 3. evalEC： 不常见
+
+## 执行栈
+  存储代码执行期间创建的所有EC
+  ![ES](img/js1-ec.jpg)
+
+## EC的创建阶段与执行阶段
+### 创建
+ 
+#### 伪代码
+```js
+ExecutionContext = {
+  ThisBinding = <this value>  //1. 确认this
+  LexicalEnvironment = {...}  //2. 词法环境：存储函数声明和let、const变量
+  VariableEnvironment = {...} //3. 变量环境：存储var变量
+}
+```
+
+####  1. this Binding (确认this)
+1. 全局EC
+![ThisBinding](img/js1-thisBinding.jpg)
+
+2. Lexical Environment（词法环境：用于存储函数声明和let、const变量）
+3. Variable Environment（变量环境：用于存储var变量）
+
+例子
+```js
+let a = 20;  
+const b = 30;  
+var c;
+
+function multiply(e, f) {  
+ var g = 20;  
+ return e * f * g;  
+}
+
+c = multiply(20, 30);
+```
+
+执行上下文伪代码
+
+```js
+GlobalExectionContext = {
+
+  ThisBinding: <Global Object>,
+
+  LexicalEnvironment: {  
+    EnvironmentRecord: {    // 环境记录
+      Type: "Object",  
+      // 标识符绑定在这里  
+      a: < uninitialized >,  
+      b: < uninitialized >,  
+      multiply: < func >  
+    }  
+    outer: <null>           // 对外部环境的引用（null）
+  },
+
+  VariableEnvironment: {  
+    EnvironmentRecord: {  
+      Type: "Object",  
+      // 标识符绑定在这里  
+      c: undefined,  
+    }  
+    outer: <null>  
+  }  
+}
+```
+全局EC 拥有一个全局对象（window）及关联的方法属性（例数组方法）、用户自定义全局变量（a、b、c）创建时let、const变量未初始化（无变量提升，使用会报ReferenceError）var变量undefined（变量提升）
+
+```js
+FunctionExectionContext = {  
+   
+  ThisBinding: <Global Object>,
+
+  LexicalEnvironment: {  
+    EnvironmentRecord: {  
+      Type: "Declarative",  
+      // 标识符绑定在这里  
+      Arguments: {0: 20, 1: 30, length: 2},  
+    },  
+    outer: <GlobalLexicalEnvironment>  
+  },
+
+  VariableEnvironment: {  
+    EnvironmentRecord: {  
+      Type: "Declarative",  
+      // 标识符绑定在这里  
+      g: undefined  
+    },  
+    outer: <GlobalLexicalEnvironment>  
+  }  
+}
+```
+函数EC：用户在函数中定义的变量被存储在环境记录中，包含了arguments 对象。对外部环境的引用可以是全局环境，也可以是包含内部函数的外部函数环境。

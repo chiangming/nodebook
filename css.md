@@ -128,7 +128,9 @@
 ### <link> 与 @import 的区别
 * link功能较多，可以定义 RSS，定义 Rel 等作用，而@import只能用于加载 css
 <link rel="stylesheet" href="****.css" type="text/css">
+<style type="text/css">
 @import "***.css"
+</style>
 * 当解析到link时，页面会同步加载所引的 css，而@import所引用的 css 会等到页面加载完才被加载
 * @import需要 IE5 以上才能使用
 * link可以使用 js 动态引入，@import不行
@@ -141,3 +143,84 @@
 
 ### 总结
 ![css](img/css.jpg)
+
+### FFC
+flex: flex-grow, (flex-shark,flex-basis)的简写  
+  *  默认: =>0 1 auto （等比缩小）
+  * auto:=> 1 1 auto（等比放大缩小）
+  * none:=> 0 0 auto （原来大小）
+  * flex:1 => 1 1 auto（等比放大缩小）  
+
+flex：0.125 flex：0.5 flex 0.25
+  即flex-grow总和小于1时，占用剩余空间的12.5% 50% 25% ，剩余空间占比1：4：2 剩下12.5%不被占用
+![flex](img/css-flex.png)
+
+### BFC:块级格式化上下文
+规定了内部的Block-level Box如何布局，并且与这个区域外部毫不相干。从上至下排列、上下margin合并、除float元素外的box的margin-box与BFC的左边相接、BFC不会被float元素覆盖、BFC内元素布局不会影响外部布局
+
+### IFC：
+ content box/area的高由font-size/line-height决定的；
+content box/area的宽等于其子行级盒子的外宽度(margin+border+padding+content width)之和。
+当inline-level box宽度大于父容器宽度时会被拆分成多个inline-level box
+IFC则是表示盒子从左到右的水平排列方式
+[IFC](https://juejin.im/entry/587c41f91b69e6006bf1b8ec)
+
+### BEM
+.block {}
+.block__element {}
+.block__element--modifier {}
+
+### block inline
+block 块元素    inline 内联元素
+
+常见的块元素有：div, p, h1~h6, table, form, ol, ul等
+
+常见的内联元素有：span, a, strong, em, label, input, select, textarea, img, br等
+
+block:
+1. 独占一行
+2. 设置width,height、margin和padding属性。
+
+inline:
+1. 共占一行至换行
+2. width,height无效、水平方向margin和padding产生边距效果，竖直方向无效
+
+inline-block：
+多个元素可以同排一行，且元素具有block的属性，可设置宽高，是block和inline元素的综合体。
+
+### 可替换元素
+
+可替换元素（replaced element）的展现效果不是由 CSS 来控制的，CSS 可以影响可替换元素的位置，但不会影响到可替换元素自身的内容。
+典型的可替换元素有：
+```html
+<iframe>
+<video>
+<embed>
+<img>
+```
+
+object-fit：指定可替换元素的内容对象在元素盒区域中的填充方式。  
+object-position
+指定可替换元素的内容对象在元素盒区域中的位置。
+
+### 文本截断
+单行文本截断： text-overflow:ellipsis 
+多行文本截断：
+display: -webkit-box;
+  overflow: hidden;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+CSS方法：
+::after {
+    content:"...";
+    font-weight:bold;
+    position:absolute;
+    bottom:0;
+    right:0;
+    padding:0 20px 1px 45px;
+    background: linear-gradient(to right, rgba(255, 255, 255, 0), white 50%, white);
+}
+
+### tips
+scale(-1,-1) 等价于旋转180度
