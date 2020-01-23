@@ -12,7 +12,7 @@ Scope Chain： 当前VO ——>外部EC ——> …… ——> 全局EC
 4. 函数内部初始化变量时没有使用 var 声明，该变量会自动被添加到全局环境。在严格模式下，初始化未经声明的变量会导致错误。
 
 ## 垃圾回收
-1. 标记清除
+1. 标记清除 （从根部（在JS中就是全局对象）出发定时扫描内存中的对象，凡是能从根部到达的对象，保留。那些从根部出发无法触及到的对象被标记为不再使用，稍后进行回收。）
 2. 引用计数（js对象循环引用，IE8的DOM/BOM对象循环引用）-手动null
 
 # 数组类型的常用操作方法
@@ -142,102 +142,121 @@ var sum = function(num1, num2){
   * apply(),call()
   * bind() 会创建函数实例
 
+# 词法作用域（静态作用域）
+函数的作用域在 **函数定义** 的时候就决定了。
+```js
+var value = 1;
+
+function foo() {
+    console.log(value);
+}
+
+function bar() {
+    var value = 2;
+    foo();    // foo中value的作用域为全局EC而不是bar的函数EC
+}
+
+bar(); // 结果是1 不是2
+```
+
 # 执行上下文和执行栈
+全局代码初始化时首先ECS压入一个全局EC
+遇到函数执行时，创建一个函数EC。
 
 ## 执行上下文
  1. 全局EC： window（浏览器）、moudle（node）
  2. 函数EC： 函数每次被调用时创建
- 3. evalEC： 不常见
+ 3. ~~evalEC： 不常见~~
 
 ## 执行栈
   存储代码执行期间创建的所有EC
   ![ES](img/js1-ec.jpg)
 
 ## EC的创建阶段与执行阶段
-### 创建
  
 #### 伪代码
 ```js
 ExecutionContext = {
   ThisBinding = <this value>  //1. 确认this
-  LexicalEnvironment = {...}  //2. 词法环境：存储函数声明和let、const变量
-  VariableEnvironment = {...} //3. 变量环境：存储var变量
+  VO = {...}                  //2. 与EC相关的数据作用域，存储了EC中定义的变量和函数声明。
+  ScopeChain = {...}          //3. 作用域链
 }
 ```
+全局上下文中的变量对象就是全局对象window（浏览器）、moudle（node）
+（全局对象是由 Object 构造函数实例化的一个对象）
+
+### 创建
 
 ####  1. this Binding (确认this)
-1. 全局EC
 ![ThisBinding](img/js1-thisBinding.jpg)
 
-2. Lexical Environment（词法环境：用于存储函数声明和let、const变量）
-3. Variable Environment（变量环境：用于存储var变量）
-
-例子
-```js
-let a = 20;  
-const b = 30;  
-var c;
-
-function multiply(e, f) {  
- var g = 20;  
- return e * f * g;  
-}
-
-c = multiply(20, 30);
-```
-
-执行上下文伪代码
-
-```js
-GlobalExectionContext = {
-
-  ThisBinding: <Global Object>,
-
-  LexicalEnvironment: {  
-    EnvironmentRecord: {    // 环境记录
-      Type: "Object",  
-      // 标识符绑定在这里  
-      a: < uninitialized >,  
-      b: < uninitialized >,  
-      multiply: < func >  
-    }  
-    outer: <null>           // 对外部环境的引用（null）
+####  2. VO
+VO = {
+  arguments: {        // 全局EC没有
+        0: 形参值,
+        length: 1
   },
-
-  VariableEnvironment: {  
-    EnvironmentRecord: {  
-      Type: "Object",  
-      // 标识符绑定在这里  
-      c: undefined,  
-    }  
-    outer: <null>  
-  }  
+  形参名：形参值，
+  变量名：undefined     // 变量声明
+  函数名：<ref to func> // 函数声明
 }
-```
+
 全局EC 拥有一个全局对象（window）及关联的方法属性（例数组方法）、用户自定义全局变量（a、b、c）创建时let、const变量未初始化（无变量提升，使用会报ReferenceError）var变量undefined（变量提升）
 
-```js
-FunctionExectionContext = {  
-   
-  ThisBinding: <Global Object>,
+函数EC的VO初始化只包括 Arguments 对象
 
-  LexicalEnvironment: {  
-    EnvironmentRecord: {  
-      Type: "Declarative",  
-      // 标识符绑定在这里  
-      Arguments: {0: 20, 1: 30, length: 2},  
-    },  
-    outer: <GlobalLexicalEnvironment>  
-  },
+js引擎 单线程顺序 ~~y一行一行~~ 一段一段执行
+当执行一段代码的时候，会进行一个“准备工作”  
+同一EC下：
+1. [变量提升](javascript/执行上下文栈和变量对象/变量提升.js) 
 
-  VariableEnvironment: {  
-    EnvironmentRecord: {  
-      Type: "Declarative",  
-      // 标识符绑定在这里  
-      g: undefined  
-    },  
-    outer: <GlobalLexicalEnvironment>  
-  }  
-}
-```
-函数EC：用户在函数中定义的变量被存储在环境记录中，包含了arguments 对象。对外部环境的引用可以是全局环境，也可以是包含内部函数的外部函数环境。
+    （变量声明提升到函数顶部 例：var a = 2中 var a提升到顶部）  
+
+2. [函数提升](javascript/执行上下文栈和变量对象/函数提升.js) 
+
+    (function a(){} 的< a func >提升到顶部，后的同名声明覆盖前声明)
+3. [优先级：函数 > 变量](javascript/执行上下文栈和变量对象/声明优先级函数大于变量.js)  
+    （function a（）{}的< a function> 优先与var a = function(){}的 var a）
+
+#### Scope Chain
+由多个EC的VO构成的链表就叫做作用域链。  
+Scope = [AO].concat([[Scope]]);   
+* Scope ：作用域链
+* AO: 当前活动对象
+* [[Scope]]：所有父VO的层级链
+
+当访问一个变量时，解释器会首先在当前作用域查找标示符，如果没有找到，就去（词法环境的）父作用域找，一直找到全局上下文的变量对象，也就是全局对象。
+### 执行
+#### VO
+顺序执行代码，根据代码，修改VO的值
+
+# 执行上下文栈和变量对象
+
+
+执行上下文栈ECS根据函数执行顺序对全局EC和函数EC依次入出栈
+
+
+
+
+# 内存空间
+当一个方法执行时，每个方法都会建立自己的内存栈，在这个方法内定义的变量将会逐个放入这块栈内存里，随着方法的执行结束，这个方法的内存栈也将自然销毁了。因此，所有在方法中定义的变量都是放在栈内存中的；
+
+     当我们在程序中创建一个对象时，这个对象将被保存到运行时数据区中，以便反复利用（因为对象的创建成本通常较大），这个运行时数据区就是堆内存。堆内存中的对象不会随方法的结束而销毁，即使方法结束后，这个对象还可能被另一个引用变量所引用（方法的参数传递时很常见），则这个对象依然不会被销毁，只有当一个对象没有任何引用变量引用它时，系统的垃圾回收机制才会在核实的时候回收它。
+
+![1](img/js-mem.png)
+
+# 闭包
+闭包:
+1. 一个函数（比如，内部函数从父函数中返回）
+2. 能访问上级函数作用域中的变量（哪怕上级函数上下文已经销毁）
+
+（函数中访问全局变量也是一种闭包）
+
+ **是闭包中的变量并不保存中栈内存中，而是保存在堆内存中**
+即使外部函数已经返回，闭包仍能访问和更新外部函数定义的变量
+
+闭包函数f 执行的时候，外部函数EC已经被销毁了，那闭包函数f是如何获取到外部函数变量的呢？
+
+闭包的当前Scope --> 外部函数Scope--> 全局Scope，即使  外部函数Scope 被销毁了，但是 JavaScript 依然会让外部函数EC.AO活在内存中，f 函数依然可以通过 f 函数的作用域链找到它，这就是闭包实现的关键。
+[闭包经典题](https://muyiy.cn/blog/2/2.2.html#%E9%9D%A2%E8%AF%95%E5%BF%85%E5%88%B7%E9%A2%98)
+
