@@ -189,7 +189,16 @@ ExecutionContext = {
 
 ####  1. this Binding (确认this)
 ![ThisBinding](img/js1-thisBinding.jpg)
-
+* 默认绑定：独立函数调用，this指向全局对象。
+* 隐式绑定：当函数引用有上下文对象时，隐式绑定规则会把函数中的this绑定到这个上下文对象。
+* 显示绑定：通过call(..) 或者 apply(..)方法。第一个参数是一个对象，在调用函数时将这个对象绑定到this。因为直接指定this的绑定对象，称之为显示绑定。call或者apply绑定null或者undefined时this为默认绑定
+    * 硬绑定 bind,返回一个硬绑定的新函数,解决丢失绑定问题.
+* 使用new来调用函数，或者说发生构造函数调用时，会自动执行下面的操作。
+    1. 创建（或者说构造）一个新对象。
+    2. 这个新对象会被执行[[Prototype]]连接。
+    3. 这个新对象会绑定到函数调用的this。
+    4. 如果函数没有返回其他对象，那么new表达式中的函数调用会自动返回这个新对象。
+* => 绑定：根据外层（函数或者全局）作用域（词法作用域）来决定this。箭头函数的this无法通过bind，call，apply来直接修改
 ####  2. VO
 VO = {
   arguments: {        // 全局EC没有
@@ -260,3 +269,14 @@ Scope = [AO].concat([[Scope]]);
 闭包的当前Scope --> 外部函数Scope--> 全局Scope，即使  外部函数Scope 被销毁了，但是 JavaScript 依然会让外部函数EC.AO活在内存中，f 函数依然可以通过 f 函数的作用域链找到它，这就是闭包实现的关键。
 [闭包经典题](https://muyiy.cn/blog/2/2.2.html#%E9%9D%A2%E8%AF%95%E5%BF%85%E5%88%B7%E9%A2%98)
 
+# Tips
+柯里化（预先设置一些参数）
+```js
+function foo(a, b) {
+    console.log( "a:" + a + "，b:" + b );
+}
+
+// 使用bind(..)进行柯里化
+var bar = foo.bind( null, 2 );
+bar( 3 ); // a:2，b:3 
+```
