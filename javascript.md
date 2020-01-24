@@ -396,3 +396,91 @@ function cloneDeep3(source, hash = new WeakMap()) {
     return target;
 }
 ```
+
+# 原型及原型链
+## 构造函数
+* Symbol 作为构造函数来说并不完整，因为不支持语法 new Symbol()，但其原型上拥有 constructor 属性，即 Symbol.prototype.constructor。
+* 引用类型 constructor 属性值是可以修改的，但是对于基本类型来说是只读的，当然 null 和 undefined 没有 constructor 属性。
+* __proto__ 是每个实例上都有的属性，prototype 是构造函数的属性，在实例上并不存在，所以这两个并不一样，但 p.__proto__ 和 Parent.prototype 指向同一个对象。
+* __proto__ 属性在 ES6 时被标准化，但因为性能问题并不推荐使用，推荐使用 Object.getPrototypeOf()。
+
+## 原型链
+* 每个对象拥有一个原型对象，通过 __proto__ 指针指向上一个原型 ，并从中继承方法和属性，同时原型对象也可能拥有原型，这样一层一层，最终指向 null，这就是**原型链**。
+* 当访问一个对象的属性 / 方法时，它不仅仅在该对象上查找，还会查找该对象的原型，以及该对象的原型的原型，一层一层向上查找，直到找到一个名字匹配的属性 / 方法或到达原型链的末尾（null）。
+* 原型链的构建依赖于 __proto__，一层一层最终链接到 null。
+* instanceof 原理就是实例一层一层查找 __proto__，如果和实例的constructor.prototype 相等则返回 true，如果一直没有查找成功则返回 false。
+
+## Object.create() 和 new Object()的区别
+new 的模拟实现
+```js
+function create() {
+	// 1、获得构造函数，同时删除 arguments 中第一个参数
+    Con = [].shift.call(arguments);
+	// 2、创建一个空的对象并链接到原型，obj 可以访问构造函数原型中的属性
+    var obj = Object.create(Con.prototype);
+	// 3、绑定 this 实现继承，obj 可以访问到构造函数中的属性
+    var ret = Con.apply(obj, arguments);
+	// 4、优先返回构造函数返回的对象
+	return ret instanceof Object ? ret : obj;
+};
+```
+可以看出 Object.create(Con.prototype)与new Con()相比，少了Con.apply(obj, arguments)的过程
+let a = Object.create(b): 创建一个空对象a，a.__proto__指向b
+let a = new B()，B是一个 constructor，也是一个 function，B身上有着 prototype 的引用，只要随时调用 a = new B()，我就会将 a.__proto__ 指向到B的 prototype 对象。
+
+### object.create()模拟实现
+```js
+function create(obj){
+    function f = function(){}
+    f.prototype = obj
+    return new f()
+}
+```
+
+## 原型链式继承
+```js
+// 相当于 ChidlType.prototype.__proto__ = SuperType.prototype
+ChidlType.prototype = new SuperType();
+ChidlType.prototype.constructor = ChidlType
+```
+
+缺点：
+1. 多个实例对引用类型的操作会被篡改
+2. 子类型的原型上的 constructor 属性被重写
+    * 为new SuperType()实例的constructor（没有则向上原型查找为Object.constructor）了
+    * 解决：```ChidlType.prototype.constructor = ChidlType```
+3. 给子类型原型添加属性和方法必须在替换原型之后
+4. 创建子类型实例时无法向父类型的构造函数传参
+
+## 其他继承方案
+* 借用构造函数： 子构造函数中使用 ```SuperType.call(this)```
+    * 缺点：1. 父类原型不继承; 2. 无法复用
+* 组合继承：    原型链式继承 + ```SuperType.call(this)```
+* 原型式继承： Object.create(superInstance) 
+* 寄生式继承： 在 **原型式继承** 产生的实例上直接添加属性和方法
+* 寄生组合式继承: 组合继承中的new SuperType（）替换成 Object.create(superType.prototype) 
+```js
+// 父类
+function SuperType(name){
+  this.name = name;
+  this.colors = ["red", "blue", "green"];
+}
+SuperType.prototype.sayName = function(){
+  alert(this.name);
+};
+
+// 子类
+function SubType(name, age){
+  SuperType.call(this, name); // 借用构造函数传递增强子类实例属性（支持传参和避免篡改）
+  this.age = age;
+}
+
+var prototype = Object.create(superType.prototype);
+// 原型链式继承中 new SuperType（）替换成 Object.create(superType.prototype)，减少一次父类构造函数调用
+subType.prototype = prototype;                      // 原型链式继承1
+prototype.constructor = subType;                    // 原型链式继承2
+```
+* 混入式继承： ```Object.assign(MyClass.prototype, OtherSuperClass.prototype);```
+* ES6 类继承：extends实现和寄生组合式继承方式一样
+
+
