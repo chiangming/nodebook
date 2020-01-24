@@ -88,8 +88,9 @@ var sum = function(num1, num2){
 6. 扩充作用域apply和call  
    1. 方法（非继承):apply() 和 call()  
    * 在特定的作用域中调用函数,实际上等于设置函数体内 this 对象的值
-   * apply() arg[0]:运行函数的作用域 arg[1]:参数数组
    * call()  arg[0]:运行函数的作用域 arg[1~n]:参数1~n
+   * apply() arg[0]:运行函数的作用域 arg[1]:参数数组
+   
 
 ### 数据类型
 * 简单类型：undefined null boolean number string 
@@ -163,14 +164,23 @@ bar(); // 结果是1 不是2
 全局代码初始化时首先ECS压入一个全局EC
 遇到函数执行时，创建一个函数EC。
 
+* ECStack管理EC的压栈和出栈。
+* 每个EC对应一个作用域链Scope，VO|AO（AO，VO只能有一个），this。
+* 函数EC中的Scope在进入函数EC时创建，用来有序访问该EC对象AO中的变量和函数。
+* 函数EC中的AO在进入函数EC时，确定了Arguments对象的属性；在执行函数EC时，其它变量属性具体化。
+* 函数的[[scope]]属性在函数创建时就已经确定，并保持不变
+
 ## 执行上下文
- 1. 全局EC： window（浏览器）、moudle（node）
+ 1. 全局EC： window（浏览器）、exports（node）
  2. 函数EC： 函数每次被调用时创建
  3. ~~evalEC： 不常见~~
 
 ## 执行栈
   存储代码执行期间创建的所有EC
   ![ES](img/js1-ec.jpg)
+
+  EC分为两个阶段，进入执行上下文和执行代码。
+
 
 ## EC的创建阶段与执行阶段
  
@@ -228,7 +238,7 @@ js引擎 单线程顺序 ~~y一行一行~~ 一段一段执行
     （function a（）{}的< a function> 优先与var a = function(){}的 var a）
 
 #### Scope Chain
-由多个EC的VO构成的链表就叫做作用域链。  
+作用域链Scope其实就是对执行上下文EC中的变量对象VO|AO有序访问的链表 
 Scope = [AO].concat([[Scope]]);   
 * Scope ：作用域链
 * AO: 当前活动对象
@@ -268,9 +278,13 @@ Scope = [AO].concat([[Scope]]);
 
 闭包的当前Scope --> 外部函数Scope--> 全局Scope，即使  外部函数Scope 被销毁了，但是 JavaScript 依然会让外部函数EC.AO活在内存中，f 函数依然可以通过 f 函数的作用域链找到它，这就是闭包实现的关键。
 [闭包经典题](https://muyiy.cn/blog/2/2.2.html#%E9%9D%A2%E8%AF%95%E5%BF%85%E5%88%B7%E9%A2%98)
+[闭包题2]（https://www.cnblogs.com/xxcanghai/p/4991870.html）
+
+
+# 匿名函数表达式与具名函数表达式
 
 # Tips
-柯里化（预先设置一些参数）
+## 柯里化（预先设置一些参数）
 ```js
 function foo(a, b) {
     console.log( "a:" + a + "，b:" + b );
@@ -279,4 +293,106 @@ function foo(a, b) {
 // 使用bind(..)进行柯里化
 var bar = foo.bind( null, 2 );
 bar( 3 ); // a:2，b:3 
+```
+
+## 判断对象中是否存在某个属性
+var obj = {
+     a: 2
+};
+Object.prototype.b = function() {
+    return "hello b";
+}
+* in 操作符
+检查属性是否存在对象及其 [[Prototype]] 原型链中。
+```js
+("a" in obj);     // true
+("b" in obj);     // true
+```
+
+* Object.hasOwnProperty(...)方法
+不向上检查原型链
+
+# 深浅拷贝原理
+## 浅拷贝
+如果属性是基本类型，拷贝的就是基本类型的值，
+如果属性是引用类型，拷贝的就是内存地址 
+* Object.assign({},source)
+* {...source};
+* slice(0)     // Array.prototype.slice()
+
+## 深拷贝
+完全改变source变量之后对 copy 没有任何影响。
+* JSON.parse(JSON.stringify(source)) [缺陷](https://muyiy.cn/blog/4/4.1.html#%E4%B8%89%E3%80%81%E6%B7%B1%E6%8B%B7%E8%B4%9D%EF%BC%88deep-copy%EF%BC%89)
+
+* jQuery.extend()
+* lodash.cloneDeep()
+
+## Object.assign [模拟实现](https://muyiy.cn/blog/4/4.2.html#object-assign-%E6%A8%A1%E6%8B%9F%E5%AE%9E%E7%8E%B0) 
+### tips
+1. 原生情况下挂载在 Object 上的属性是不可枚举的，   
+但是直接在 Object 上挂载属性 a 之后是可枚举的  
+可以通过Object.defineProperty设置不可枚举属性   
+    * enumerable: false,   
+    * writable: true,   
+    * configurable: true。
+2. 检查枚举情况
+```js
+Object.getOwnPropertyDescriptor(Object, "a");
+// {
+// 	value: ƒ, 
+//  writable: true, 
+//  enumerable: true,  // 注意这里是 true
+//  configurable: true
+// }
+
+Object.propertyIsEnumerable("a");
+// true
+```
+
+## 简单浅拷贝
+```js
+function cloneShallow(source) {
+    var target = {};
+    for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
+        }
+    }
+    return target;
+}
+```
+
+## 简单深拷贝
+```js
+// 已知
+typeof null //"object"
+typeof {} //"object"
+typeof [] //"object"
+typeof function foo(){} //"function" (特殊情况)
+```
+
+```js
+function isObject(obj) {
+	return typeof obj === 'object' && obj != null;
+}
+
+function cloneDeep3(source, hash = new WeakMap()) {
+
+    if (!isObject(source)) return source; 
+    if (hash.has(source)) return hash.get(source); // 新增代码，查哈希表
+      
+    var target = Array.isArray(source) ? [] : {};
+    hash.set(source, target); // 新增代码，哈希表设值
+    
+    for(var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+            if (isObject(source[key])) {
+                target[key] = cloneDeep3(source[key], hash); // 新增代码，传入哈希表
+            } else {
+                target[key] = source[key];
+            }
+        }
+    }
+    return target;
+}
 ```
