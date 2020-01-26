@@ -101,6 +101,14 @@ var sum = function(num1, num2){
 * number 
 * string 
 * object -> 对象或null
+
+### Boolean
+| type | true | false |
+| --- | --- | --- |
+| Number | 任何大于0的数 | 0和NaN |
+| String | 任何非空字符串 | "" |
+| Object | 任何对象，包括{},[] | null |
+| undefined | | undefined |
 ### Number
 * Infinity
 * NaN 
@@ -109,7 +117,13 @@ var sum = function(num1, num2){
   * parseFloat(" ") ;
 ### String 
 * num.toString(10);
-* String(num);
+* String(num); String('111') === '111'
+* slice() substr() substring()  start end 截取
+* concat() 
+* charAt() charCodeAt()
+* indexOf() lastIndexOf()
+* search() 第一次出现位置 replace() match() 返回数组
+* split()
 ### Object
 * constructor  返回构造函数 创建当前对象的函数
 * hasOwnProperty() 自己是否有某个属性
@@ -126,10 +140,10 @@ var sum = function(num1, num2){
 ### Array
 * isArray() toString() valueOf() join()
 * push() pop() shift() unshift()
-* reserve() sort()
-* concat() slice() splice() 
+*  reverse() 转置 sort()  return<0 a在前
+* concat() 连接 slice() 起始 和 结束位置 不包括结束位置 splice()  删除起始位置 长度 替换
 * indexOf() lasetIndexOf()
-* every() some() forEach() filter() map() 
+* every()  全为true 返回true some() 任一为true 返回true  forEach() filter() 所有ture 组成数组 map() 返回数组
 * reduce() reduceRight()
 ### Date
 ### Function
@@ -144,7 +158,7 @@ var sum = function(num1, num2){
   * bind() 会创建函数实例
 
 # 词法作用域（静态作用域）
-函数的作用域在 **函数定义** 的时候就决定了。
+函数的作用域在 **函数定义** 的时候就决定了。（除了this引用）
 ```js
 var value = 1;
 
@@ -159,6 +173,29 @@ function bar() {
 
 bar(); // 结果是1 不是2
 ```
+### 作用域 （编译）
+上下文中声明的 变量和声明的作用范围
+* 全局作用域 不带有声明关键字的变量，JS 会默认帮你声明一个全局变量
+* 块级作用域 用let声明 const （es6） 是必须有一个 { } 包裹：
+
+```
+for(let i = 0; i < 5; i++) {
+    setTimeout(function() {
+      console.log(i);
+    }, 200);
+};
+//for (let x...)的循环在每次迭代时都为x创建新的绑定 相当于下面的例子
+var a = [];
+{ var k;
+    for (k = 0; k < 10; k++) {
+      let i = k; //注意这里，每次循环都会创建一个新的i变量
+      a[i] = function () {
+        console.log(i);
+      };
+    }
+}
+```
+上面代码中，变量i是let声明的，当前的i只在本轮循环有效，所以每一次循环的i其实都是一个新的变量，所以最后输出的是6。你可能会问，如果每一轮循环的变量i都是重新声明的，那它怎么知道上一轮循环的值，从而计算出本轮循环的值？这是因为 JavaScript 引擎内部会记住上一轮循环的值，初始化本轮的变量i时，就在上一轮循环的基础上进行计算。for循环还有一个特别之处，就是设置循环变量的那部分是一个父作用域，而循环体内部是一个单独的子作用域
 
 # 执行上下文和执行栈
 全局代码初始化时首先ECS压入一个全局EC
@@ -170,7 +207,7 @@ bar(); // 结果是1 不是2
 * 函数EC中的AO在进入函数EC时，确定了Arguments对象的属性；在执行函数EC时，其它变量属性具体化。
 * 函数的[[scope]]属性在函数创建时就已经确定，并保持不变
 
-## 执行上下文
+## 执行上下文 （执行）
  1. 全局EC： window（浏览器）、exports（node）
  2. 函数EC： 函数每次被调用时创建
  3. ~~evalEC： 不常见~~
@@ -180,6 +217,12 @@ bar(); // 结果是1 不是2
   ![ES](img/js1-ec.jpg)
 
   EC分为两个阶段，进入执行上下文和执行代码。
+  #### 代码执行过程:
+* 创建 全局上下文 (global EC)
+* 全局执行上下文 (caller) 逐行 自上而下 执行。遇到函数时，函数执行上下文 (callee) 被* push到执行栈顶层
+* 函数执行上下文被激活，成为 active EC, 开始执行函数中的代码，caller 被挂起
+* 函数执行完后，callee 被pop移除出执行栈，控制权交还全局上下文 (caller)，继续执行
+* 执行到最后，执行环境栈中只有全局执行上下文，等到应用程序结束才会销毁
 
 
 ## EC的创建阶段与执行阶段
@@ -198,16 +241,23 @@ ExecutionContext = {
 ### 创建
 
 ####  1. this Binding (确认this)
+this: 指代函数当前的运行环境    
 ![ThisBinding](img/js1-thisBinding.jpg)
-* 默认绑定：独立函数调用，this指向全局对象。
-* 隐式绑定：当函数引用有上下文对象时，隐式绑定规则会把函数中的this绑定到这个上下文对象。
-* 显示绑定：通过call(..) 或者 apply(..)方法。第一个参数是一个对象，在调用函数时将这个对象绑定到this。因为直接指定this的绑定对象，称之为显示绑定。call或者apply绑定null或者undefined时this为默认绑定
-    * 硬绑定 bind,返回一个硬绑定的新函数,解决丢失绑定问题.
-* 使用new来调用函数，或者说发生构造函数调用时，会自动执行下面的操作。
-    1. 创建（或者说构造）一个新对象。
-    2. 这个新对象会被执行[[Prototype]]连接。
-    3. 这个新对象会绑定到函数调用的this。
-    4. 如果函数没有返回其他对象，那么new表达式中的函数调用会自动返回这个新对象。
+说人话就是，谁调用了函数。例如:
+* 隐式绑定obj.fn()，便是 obj 调用了函数，既函数中的 this === obj
+* 默认绑定fn()，这里可以看成 window.fn()，因此 this === window
+
+* 显示绑定:
+    * call: fn.call(target, 1, 2)
+    * apply: fn.apply(target, [1, 2])
+    * bind: fn.bind(target)(1,2) 返回新函数 其中this指向target
+    * target 绑定null或者undefined时this为默认绑定
+* new运算过程绑定
+    * 生成新对象
+    * 链接到原型 新对象.`_proto_` = 对象.prototype 
+    * 绑定this 指向新对象
+    * 返回新对象 
+
 * => 绑定：根据外层（函数或者全局）作用域（词法作用域）来决定this。箭头函数的this无法通过bind，call，apply来直接修改
 ####  2. VO
 VO = {
@@ -238,11 +288,13 @@ js引擎 单线程顺序 ~~y一行一行~~ 一段一段执行
     （function a（）{}的< a function> 优先与var a = function(){}的 var a）
 
 #### Scope Chain
-作用域链Scope其实就是对执行上下文EC中的变量对象VO|AO有序访问的链表 
+执行上下文中包含作用域链Scope。指向变量对象VO|AO的指针列表
+当代码在**一个环境中**执行时，会创建变量对象的**一个作用域链**，VO激活了变成AO
+    
 Scope = [AO].concat([[Scope]]);   
 * Scope ：作用域链
 * AO: 当前活动对象
-* [[Scope]]：所有父VO的层级链
+* [[Scope]]：指向父级变量对象和父级EC作用域链
 
 当访问一个变量时，解释器会首先在当前作用域查找标示符，如果没有找到，就去（词法环境的）父作用域找，一直找到全局上下文的变量对象，也就是全局对象。
 ### 执行
@@ -266,6 +318,9 @@ Scope = [AO].concat([[Scope]]);
 
 # 闭包
 闭包:
+
+闭包的定义可以理解为: 父函数被销毁 的情况下，返回出的子函数的[[scope]]中仍然保留着父级EC的变量对象和作用域链，因此可以继续访问到父级的变量对象，**除了this和arguments**这样的函数称为闭包。
+
 1. 一个函数（比如，内部函数从父函数中返回）
 2. 能访问上级函数作用域中的变量（哪怕上级函数上下文已经销毁）
 
@@ -274,9 +329,39 @@ Scope = [AO].concat([[Scope]]);
  **是闭包中的变量并不保存中栈内存中，而是保存在堆内存中**
 即使外部函数已经返回，闭包仍能访问和更新外部函数定义的变量
 
-闭包函数f 执行的时候，外部函数EC已经被销毁了，那闭包函数f是如何获取到外部函数变量的呢？
+* 多个子函数的[[scope]]都是同时指向父级，是完全共享的。因此当父级的变量对象被修改时，所有子函数都受到影响。
+    * 变量可以通过 函数参数的形式 传入，避免使用默认的[[scope]]向上查找 
+        * (function(msg){
+            return function(){console.log(msg);}
+        })(i)
+    * 使用setTimeout包裹，通过第三个参数传入
+        * 第三个参数及以后的参数都可以作为func函数的参数
+    
+    * 使用 块级作用域，让变量成为自己上下文的属性，避免共享
+        for(let i;i<3;i++)
+```
+function setData(){
+    var data = [];
+    for(var i=0;i<3;i++){
+        data[i] = (function(i){
+            return function(){
+                 console.log(i);
+            }
+        })(i);             
+    }
+    return data;
+}
+var data = setData();
+data[1]();
+for (var i = 0; i < 3; i++) {
+  setTimeout((msg)=>{
+    data[msg] = function(){
+        console.log(msg);
+    }
+  },0,i)
+}
+```
 
-闭包的当前Scope --> 外部函数Scope--> 全局Scope，即使  外部函数Scope 被销毁了，但是 JavaScript 依然会让外部函数EC.AO活在内存中，f 函数依然可以通过 f 函数的作用域链找到它，这就是闭包实现的关键。
 [闭包经典题](https://muyiy.cn/blog/2/2.2.html#%E9%9D%A2%E8%AF%95%E5%BF%85%E5%88%B7%E9%A2%98)
 [闭包题2]（https://www.cnblogs.com/xxcanghai/p/4991870.html）
 
@@ -284,7 +369,9 @@ Scope = [AO].concat([[Scope]]);
 # 匿名函数表达式与具名函数表达式
 
 # Tips
-## 柯里化（预先设置一些参数）
+## 柯里化
+只传递给函数一部分参数来调用它，让它返回一个新函数去处理剩下的参数。
+### 预先设置一些参数
 ```js
 function foo(a, b) {
     console.log( "a:" + a + "，b:" + b );
@@ -294,38 +381,80 @@ function foo(a, b) {
 var bar = foo.bind( null, 2 );
 bar( 3 ); // a:2，b:3 
 ```
-
-## 判断对象中是否存在某个属性
-var obj = {
-     a: 2
-};
-Object.prototype.b = function() {
-    return "hello b";
-}
-* in 操作符
-检查属性是否存在对象及其 [[Prototype]] 原型链中。
+### [curry](https://muyiy.cn/blog/6/6.2.html#%E6%9F%AF%E9%87%8C%E5%8C%96)
 ```js
-("a" in obj);     // true
-("b" in obj);     // true
+function currying(fn, length) {
+  length = length || fn.length; 	
+  return function (...args) {			
+    return args.length >= length	
+    	? fn.apply(this, args)			
+      : currying(fn.bind(this, ...args), length - args.length) 
+  }
+}
 ```
+注：fn.length: 实参长度
+arguments.length:型参长度
+```js
+const fn = currying(function(a, b, c) {
+    console.log([a, b, c]);
+});
 
-* Object.hasOwnProperty(...)方法
-不向上检查原型链
+fn("a", "b", "c") // ["a", "b", "c"]
+fn("a", "b")("c") // ["a", "b", "c"]
+fn("a")("b")("c") // ["a", "b", "c"]
+fn("a")("b", "c") // ["a", "b", "c"]
+```
 
 # 深浅拷贝原理
 ## 浅拷贝
 如果属性是基本类型，拷贝的就是基本类型的值，
 如果属性是引用类型，拷贝的就是内存地址 
-* Object.assign({},source)
-* {...source};
+* Object.assigh(目标对象，源对象..) 返回目标对象
+    * Object.assign() 方法用于将从一个或多个源对象中的所有可枚举的属性值复制到目标对象
+    * 可以用于复制对象的方法
+    * 原型链上的属性和不可枚举的属性不能复制  
+    * 属性的值为对象 依旧只是引用
+* 展开运算符 ...
+    * 对象展开运算符让你可以通过展开运算符 (...) , 以更加简洁的形式将一个对象的可枚举属性拷贝至另一个对象
+    * 对象字面量的展开操作符能将源对象中的可枚举的属性复制到目标对象上
 * slice(0)     // Array.prototype.slice()
 
 ## 深拷贝
 完全改变source变量之后对 copy 没有任何影响。
-* JSON.parse(JSON.stringify(source)) [缺陷](https://muyiy.cn/blog/4/4.1.html#%E4%B8%89%E3%80%81%E6%B7%B1%E6%8B%B7%E8%B4%9D%EF%BC%88deep-copy%EF%BC%89)
+* 使用 JSON.parse(JSON.stringify(object)); 
+    * 具有循环引用的对象时，报错
+    * 当值为函数、undefined、或symbol时，无法拷贝
+* 递归进行逐一赋值
 
-* jQuery.extend()
-* lodash.cloneDeep()
+## 简单浅拷贝
+```js
+function cloneShallow(source) {
+    var target = {};
+    for (var key in source) {
+        if (Object.prototype.hasOwnProperty.call(source, key)) {
+            target[key] = source[key];
+        }
+    }
+    return target;
+}
+```
+
+## 简单深拷贝
+```js
+function copyObj(obj){
+    var copy = {};
+    for(key in obj){
+        if(typeof obj[key] === 'object'){
+           copy[key] = copyObj(obj[key]);
+        }
+        else{
+            copy[key] = obj[key];
+        }
+    }
+    return copy;
+}
+```
+[深拷贝](./深拷贝.js)
 
 ## Object.assign [模拟实现](https://muyiy.cn/blog/4/4.2.html#object-assign-%E6%A8%A1%E6%8B%9F%E5%AE%9E%E7%8E%B0) 
 ### tips
@@ -349,62 +478,68 @@ Object.propertyIsEnumerable("a");
 // true
 ```
 
-## 简单浅拷贝
-```js
-function cloneShallow(source) {
-    var target = {};
-    for (var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-            target[key] = source[key];
-        }
-    }
-    return target;
-}
-```
-
-## 简单深拷贝
-```js
-// 已知
-typeof null //"object"
-typeof {} //"object"
-typeof [] //"object"
-typeof function foo(){} //"function" (特殊情况)
-```
-
-```js
-function isObject(obj) {
-	return typeof obj === 'object' && obj != null;
-}
-
-function cloneDeep3(source, hash = new WeakMap()) {
-
-    if (!isObject(source)) return source; 
-    if (hash.has(source)) return hash.get(source); // 新增代码，查哈希表
-      
-    var target = Array.isArray(source) ? [] : {};
-    hash.set(source, target); // 新增代码，哈希表设值
-    
-    for(var key in source) {
-        if (Object.prototype.hasOwnProperty.call(source, key)) {
-            if (isObject(source[key])) {
-                target[key] = cloneDeep3(source[key], hash); // 新增代码，传入哈希表
-            } else {
-                target[key] = source[key];
-            }
-        }
-    }
-    return target;
-}
-```
-
 # 原型及原型链
+
+## 对象属性
+* 属性
+    * 数值属性
+        * value  （和writable enumerable configurable）
+    * 访问器属性 （没有数值 在调用时用来改变数值属性的值）
+        * set get 读取和写入数据时调用的函数 （和enumerable configurable）
+    * definePropety(对象名，属性名，{描述符：值})
+    * definePropeties(对象名，{ { }})
+    * getOwnPropertyDescriptor(对象，属性名)
+* hasOwnProperty 实例属性 不向上检查原型链
+* for-in 或者propName-in-Obj无论是原型还是实例中的属性都可以遍历
+
+
+## 创建对象
+* 工厂模式
+```js
+function createPerson(name,age){
+    var o = new Object();
+    o.name = name;
+    o.age = age;
+    o.sayName = function(){
+        return "hi "+name;
+    }
+    return o;
+}
+var jack = createPerson("jack",16);
+```
+* 构造函数模式
+```js
+function Person(name,age){
+    this.name = name;
+    this.age = age;
+    this.sayName = function(){
+        return "hi "+name;
+    }
+}
+var nire = new Person("nire",22);
+```
+* 原型模式
+```js
+var Man = function(){};
+Man.prototype.sexule = "man";
+Man.prototype.getGirl = function(){
+    return null;
+}
+
+var nirean = new Man();
+```
+
 ## 构造函数
 * Symbol 作为构造函数来说并不完整，因为不支持语法 new Symbol()，但其原型上拥有 constructor 属性，即 Symbol.prototype.constructor。
-* 引用类型 constructor 属性值是可以修改的，但是对于基本类型来说是只读的，当然 null 和 undefined 没有 constructor 属性。
+* 引用类型的 constructor 可以修改，
+* 基本类型
+    * number boolean string 的constructor只读的
+    * null 和 undefined 没有 constructor。
 * __proto__ 是每个实例上都有的属性，prototype 是构造函数的属性，在实例上并不存在，所以这两个并不一样，但 p.__proto__ 和 Parent.prototype 指向同一个对象。
 * __proto__ 属性在 ES6 时被标准化，但因为性能问题并不推荐使用，推荐使用 Object.getPrototypeOf()。
 
 ## 原型链
+
 * 每个对象拥有一个原型对象，通过 __proto__ 指针指向上一个原型 ，并从中继承方法和属性，同时原型对象也可能拥有原型，这样一层一层，最终指向 null，这就是**原型链**。
 * 当访问一个对象的属性 / 方法时，它不仅仅在该对象上查找，还会查找该对象的原型，以及该对象的原型的原型，一层一层向上查找，直到找到一个名字匹配的属性 / 方法或到达原型链的末尾（null）。
 * 原型链的构建依赖于 __proto__，一层一层最终链接到 null。
@@ -436,29 +571,38 @@ function create(obj){
     return new f()
 }
 ```
+## 继承
+* 借用构造函数
+    * 并没有改变原型链，只是调用了超类中的语句
+
 
 ## 原型链式继承
+
+a继承b
 ```js
-// 相当于 ChidlType.prototype.__proto__ = SuperType.prototype
-ChidlType.prototype = new SuperType();
-ChidlType.prototype.constructor = ChidlType
+A.prototype = new B();
+// A.prototype.constructor = B 解决constructor被篡改的问题
+// 相当于 A.prototype.__proto__ = B.prototype
 ```
 
-缺点：
-1. 多个实例对引用类型的操作会被篡改
-2. 子类型的原型上的 constructor 属性被重写
-    * 为new SuperType()实例的constructor（没有则向上原型查找为Object.constructor）了
-    * 解决：```ChidlType.prototype.constructor = ChidlType```
-3. 给子类型原型添加属性和方法必须在替换原型之后
-4. 创建子类型实例时无法向父类型的构造函数传参
+A instanceof B  a是b的实例吗    
+A.prototype.isPrototypeOf(B)  a是b的原型吗
+
 
 ## 其他继承方案
-* 借用构造函数： 子构造函数中使用 ```SuperType.call(this)```
-    * 缺点：1. 父类原型不继承; 2. 无法复用
-* 组合继承：    原型链式继承 + ```SuperType.call(this)```
-* 原型式继承： Object.create(superInstance) 
-* 寄生式继承： 在 **原型式继承** 产生的实例上直接添加属性和方法
-* 寄生组合式继承: 组合继承中的new SuperType（）替换成 Object.create(superType.prototype) 
+* 借用构造函数： 
+    * 并没有改变原型链，只是调用了超类中的语句 ```SuperType.call(this)```
+* 组合继承:
+    * 原型链 继承 原型属性和方法
+    * 使用构造函数继承 实例属性
+* 原型式继承： 
+    * 通过一个已存在的对象创建另一个相似对象，不用写构造函数
+    * Object.create()
+    * 引用属性会被共享
+* 寄生式继承： 
+    * 在 **原型式继承** 产生的实例上直接添加属性和方法
+* 寄生组合式继承: 
+    * 组合继承中的new SuperType（）替换成 Object.create(superType.prototype) 
 ```js
 // 父类
 function SuperType(name){
@@ -483,4 +627,83 @@ prototype.constructor = subType;                    // 原型链式继承2
 * 混入式继承： ```Object.assign(MyClass.prototype, OtherSuperClass.prototype);```
 * ES6 类继承：extends实现和寄生组合式继承方式一样
 
+![prototypr](./img/js-prototype.jpg)
+
+# 高阶函数map/filter/reduce
+const arr1 = [1, 2, 3, 4, 0];
+## Array.prototypr.map
+
+const arr2 = arr1.map((item,index,self) => item * 2);// [2,4,6,8,0]
+
+##  Array.prototype.reduce
+let sum = arr.reduce((accumulator, currentValue, currentIndex, array) => {
+  return accumulator + currentValue;
+},100); // 110
+
+## Array.prototype.filter
+const arr2 = arr1.filter( (element, index, self) => {
+    return self.indexOf( element ) === index + 1;
+}); // [1, 2, 3, 4]
+
+## isType
+let isString = obj => Object.prototype.toString.call( obj ) === '[object String]';
+
+let isArray = obj => Object.prototype.toString.call( obj ) === '[object Array]';
+
+let isNumber = obj => Object.prototype.toString.call( obj ) === '[object Number]';
+
+[js判断变量是不是数组的方法](https://www.cnblogs.com/zhizhic/p/9988947.html)
+
+## 数组扁平化
+var arr = [ [1, 2, 2], [3, 4, 5, 5], [6, 7, 8, 9, [11, 12, [12, 13, [14] ] ] ], 10];
+```js
+Array.prototype.flat = function (){
+    // return [].concat.(...this.map(item =>(Array.isArray(item)?item.flat():[item])))
+    return this.toString().split(',').map(item => item-0 )
+}
+```
+arr.flat()
+
+## 数组去重
+```js
+Array.prototype.unique = function() {
+    return [...new Set(this)]
+}
+```
+## 数组乱序
+```js
+arr.sort(function () {
+    return Math.random() - 0.5;
+});
+```
+
+# script 引入方式
+ * html 静态```<script>```引入
+ * js 动态插入```<script>```
+ ```js
+function loadScript(url){
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = url;
+    document.body.appendChild(script);
+}
+loadScript('test.js');
+
+
+function loadJsCode(code){
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    //for Chrome Firefox Opera Safari
+    script.appendChild(document.createTextNode(code));
+    //for IE
+    //script.text = code;
+    document.body.appendChild(script);
+}
+loadJsCode('alert(2)');
+ ```
+ 
+ * `<script defer>`:异步加载，元素解析完成后执行,但是 script.js 的执行要在所有元素解析完成之后，DOMContentLoaded 事件触发之前完成
+ * `<script async>`: 异步加载，但执行时会阻塞元素渲染  下载完后立即执行
+    * 没有这两个标签 浏览器会在遇到js代码就立即执行，“立即”指的是在渲染该 script 标签之下的文档元素之前，也就是说不等待后续载入的文档元素，读到就加载并执行。
+    * 两者都会并行下载，不会影响页面的解析 defer会在元素渲染完之后执行 ，async下载完后立即执行
 

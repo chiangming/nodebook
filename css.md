@@ -84,7 +84,17 @@
 
 [css选择器参考](./选择器.md)
 
-### 去除浮动影响，防止父级高度塌陷
+### display：none visibility=0的区别
+* display:none 是真的在页面上消失，不占用空间
+* visibility=0 是不见了，但还是占了空间
+
+### position
+* static 
+* absolute  元素相对于最近的非 static 定位祖先元素的偏移，来确定元素位置。如果没有就是相对于body
+* relative 相对自己原来的位置
+* fixed 相对窗口的绝对定位定位
+    * top bottom left right 是相对于最外边距的距离。（content + padding + border + margin）
+### 浮动清除 （去除浮动影响，防止父级高度塌陷）
 ```
 <div class="outer">
   <div class="inner">1</div>

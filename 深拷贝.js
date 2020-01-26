@@ -1,22 +1,7 @@
-// let a = {
-//   name: "muyiy",
-//   book: {
-//     title: "You Don't Know JS",
-//     price: "45"
-//   },
-//   a1: undefined,
-//   a2: null,
-//   a3: 123,
-//   // circleRef: exports.a,
-// }
-// a.circleRef = exports.a;
-let a = {}
-a.a1 = undefined
-a.a2 = null
-a.a3 = 123
-a.circleRef = a;
-a.name = "muyiy"
-console.log(a);
+// typeof null //"object"
+// typeof {} //"object"
+// typeof [] //"object"
+// typeof function foo(){} //"function" (特殊情况)
 
 function isObject(obj) {
   return typeof obj === 'object' && obj != null;
@@ -41,8 +26,3 @@ function cloneDeep3(source, hash = new WeakMap()) {
   }
   return target;
 }
-
-// // a.circleRef = a;
-
-var b = cloneDeep3(a);
-console.log(b);

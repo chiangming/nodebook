@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset='utf-8'>
+  <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+  <title>Page Title</title>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+  <script src='main.js'></script>
+</head>
+
+<body>
+  <input id="inp"></input>
+</body>
+<script>
+  function debounce(func, wait, immediate) {
+
+    var timeout;
+
+    return function() {
+      var context = this;
+      var args = arguments;
+
+      if (timeout) clearTimeout(timeout);
+      // 立即执行的情况
+      if (immediate) {
+        // 如果已经执行过，不再执行
+        var callNow = !timeout;
+        console.log('callNow:', callNow)
+        console.log('timeout:', timeout)
+        timeout = setTimeout(function() {
+          timeout = null;
+        }, wait)
+        if (callNow) func.apply(context, args)
+      } else {
+        timeout = setTimeout(function() {
+          func.apply(context, args)
+        }, wait);
+      }
+    }
+  }
+
+  function sayHi(a) {
+    console.log('防抖成功');
+    console.log(a);
+  }
+
+  var inp = document.getElementById('inp');
+  inp.addEventListener('input', debounce(sayHi, 5000, true).bind(this, 'a')); // 防抖
+</script>
+
+</html>
