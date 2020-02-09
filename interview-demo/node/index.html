@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>跨域测试</title>
+</head>
+
+<body>
+  <h1>跨域测试</h1>
+  <script>
+    fetch("http://localhost:8091/").then(res => res.text()).then(data => {
+      alert('Access-Control-Allow-Orign响应头:' + data)
+    })
+
+    function f(data) {
+      alert('jsonp:' + data)
+    }
+  </script>
+  <script src="http://localhost:8092?callback=f"></script>
+</body>
+
+</html>

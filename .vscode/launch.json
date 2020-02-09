@@ -10,7 +10,7 @@
       "type": "node",
       "request": "launch",
       "name": "启动程序",
-      "program": "${workspaceFolder}/temp.js"
+      "program": "${workspaceFolder}/design-module/观察者模式.js"
     }
   ]
 }

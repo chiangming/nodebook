@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<!-- <body>
+  <script>
+    opener && opener.postMessage('新页面打开成功', '*') //链接打开
+  </script>
+</body> -->
+
+<body>
+  11112222
+  <script type="text/javascript">
+    // window.addEventListener('message', function(event) {
+    //   // 通过origin属性判断消息来源地址
+    //   console.log(event.origin)
+    //   alert(event.data); // 弹出"I was there!"
+    //   alert(event.source); // 对a.com、index.html中window对象的引用
+    //   // 但由于同源策略，这里event.source不可以访问window对象
+    // }, false);
+    var obj = {
+      name: "matt",
+      age: 25,
+      sex: 'male'
+    }
+    top && top.postMessage(obj, '*') // iframe嵌套
+  </script>
+</body>
+
+</html>

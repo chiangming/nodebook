@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>圣杯布局</title>
+  <style>
+    #container {
+      width: 100%;
+      background: cornsilk;
+    }
+    
+    .column {
+      float: left;
+    }
+    
+    #center {
+      margin-left: 200px;
+      margin-right: 150px;
+      background: crimson;
+    }
+    
+    #left {
+      width: 200px;
+      background: darkkhaki;
+      margin-left: -100%;
+    }
+    
+    #right {
+      width: 150px;
+      background: darkslateblue;
+      margin-left: -150px;
+    }
+    
+    #footer {
+      clear: both;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="header">This is the header.</div>
+  <div id="container" class="column">
+    <div id="center">
+      <h1>This is the main content.</h1>
+    </div>
+  </div>
+
+  <div id="left" class="column">
+    <h2>This is the left sidebar.</h2>
+  </div>
+
+  <div id="right" class="column">
+    <h2>This is the right sidebar.</h2>
+  </div>
+
+
+  <div id="footer">This is the footer.</div>
+
+
+</body>
+
+</html>

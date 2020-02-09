@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+</head>
+
+<!-- <body>
+  <textarea name="text"></textarea>
+  <button type="button">111</button>
+  <a href="http://127.0.0.1:5501/public/test.html" target="_blank">new</a>
+  <script>
+    let textarea = document.querySelector('textarea')
+    let button = document.querySelector('button')
+    let msgPage = null
+
+    button.click = function() {
+      msgPage && msgPage.postMessage(textarea.value, '*')
+    }
+
+    window.addEventListener('message', function(e) {
+      msgPage = e.source
+
+      document.title = e.data
+      textarea.value = e.data
+    })
+  </script>
+</body> -->
+
+<body>
+  <iframe id="ifr" src="http://127.0.0.1:5501/public/test.html"></iframe>
+  <script type="text/javascript">
+    window.onload = function() {
+      var ifr = document.getElementById('ifr');
+      var targetOrigin = 'http://127.0.0.1:5501'; // 若写成'http://b.com/c/proxy.html'效果一样
+      // 若写成'http://c.com'就不会执行postMessage了
+      ifr.contentWindow.postMessage('I was there!', targetOrigin);
+    };
+
+    window.addEventListener('message', function(event) {
+      // 通过origin属性判断消息来源地址
+      console.table(event.data)
+      console.log(event.source); // 对a.com、index.html中window对象的引用
+      // 但由于同源策略，这里event.source不可以访问window对象
+    }, false);
+  </script>
+</body>
+
+</html>
